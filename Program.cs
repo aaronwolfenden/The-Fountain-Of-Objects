@@ -18,6 +18,8 @@ public class TheFountainOfObjectsGame
 
     private readonly ISense[] _senses;
 
+    public bool isFountainActivated { get; set; }
+
     public TheFountainOfObjectsGame(Map map, Player player)
     {
         Map = map;
@@ -26,15 +28,17 @@ public class TheFountainOfObjectsGame
         // New senses can be added to this list as the game is expanded upon, allowing for scalability
         _senses = new ISense[]
         {
-            new CavernEntranceSense()
+            new CavernEntranceSense(),
+            new FountainSense()
         };
     }
     public void Run()
     {
         Map.SetRoomType(new Location(0, 0), RoomType.CavernEntrance);
         Map.SetRoomType(new Location(0, 1), RoomType.Empty);
+        Map.SetRoomType(new Location(0, 2), RoomType.FountainRoom);
 
-        while (true)
+        while (!IsWon)
         {
             Console.WriteLine("---------------------------------------");
             Console.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})");
@@ -53,13 +57,21 @@ public class TheFountainOfObjectsGame
                 "move south" => new MoveCommand(Direction.South),
                 "move east" => new MoveCommand(Direction.East),
                 "move west" => new MoveCommand(Direction.West),
+                "enable fountain" => new ActivateCommand()
             };
 
             playerCommand.Execute(this);
+
+            if (IsWon)
+            {
+                Console.WriteLine("The Fountain Of Objects has been reactivated, and you have escaped with your life!");
+                Console.WriteLine("You Win!");
+            }
+
         }
-
-
     }
+
+    public bool IsWon => isFountainActivated && Map.GetRoomType(Player.Location) == RoomType.CavernEntrance;
 
 }
 
@@ -144,6 +156,16 @@ public class MoveCommand : ICommand
     }
 
 }
+// An activation command for the fountain based off ICommand
+public class ActivateCommand : ICommand
+{
+    public void Execute(TheFountainOfObjectsGame game)
+    {
+        // Checks to see if the fountain is in the same room as player and responds accordingly
+        if (game.Map.GetRoomType(game.Player.Location) == RoomType.FountainRoom) game.isFountainActivated = true;
+        else Console.WriteLine("The fountain is not in this room.");
+    }
+}
 
 // Interface for sensing which individual senses will be based off
 public interface ISense
@@ -155,21 +177,34 @@ public interface ISense
     public void Display(TheFountainOfObjectsGame game);
 }
 
-
+// A sense for checking if the player is at the cavern entrance
 public class CavernEntranceSense : ISense
 {
-    // Check if the Cavern exit can be sensed
+    // Check if the cavern entrance can be sensed
     public bool CanSense(TheFountainOfObjectsGame game) => game.Map.GetRoomType(game.Player.Location) == RoomType.CavernEntrance;
-
+    // Displays a message if it can be sensed
     public void Display(TheFountainOfObjectsGame game) => Console.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.");
 
+}
+// A sense for checking if the player can sense the fountain 
+public class FountainSense : ISense
+{
+    // Checks if the fountain is in the player's room
+    public bool CanSense(TheFountainOfObjectsGame game) => game.Map.GetRoomType(game.Player.Location) == RoomType.FountainRoom;
+
+    // Displays an appropriate message if the fountain is on or off
+    public void Display(TheFountainOfObjectsGame game)
+    {
+        if (!game.isFountainActivated) Console.WriteLine("You hear water dripping in this room. The Fountain Of Objects is here!");
+        else Console.WriteLine("You hear the rushing waters from The Fountain Of Objects. It has been reactivated!");
+    }
 }
 
 
 
 
 // Enumeration to store the different types of room, allows for expanding upon
-public enum RoomType { Empty, CavernEntrance, }
+public enum RoomType { Empty, CavernEntrance, FountainRoom}
 
 // Public enumeration to store a direction as it will be used in multiple instances
 public enum Direction { North, South, East, West }
