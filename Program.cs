@@ -1,5 +1,6 @@
 ﻿
 // Instantiate a new 3x3 map
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 
 Map map = new Map(3, 3);
@@ -42,26 +43,8 @@ public class TheFountainOfObjectsGame
 
         while (!IsWon)
         {
-            DialogueHelper.WriteLine("---------------------------------------", ConsoleColor.White);
-            DialogueHelper.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})", ConsoleColor.White);
-
-            foreach(ISense sense in _senses)
-            {
-                if (sense.CanSense(this)) sense.Display(this);
-            }
-
-
-            DialogueHelper.Write("Which direction do you wish to move? (North, South, East, West) - ", ConsoleColor.Cyan);
-            string? command = Console.ReadLine();
-            ICommand playerCommand = command?.ToLower() switch
-            {
-                "move north" => new MoveCommand(Direction.North),
-                "move south" => new MoveCommand(Direction.South),
-                "move east" => new MoveCommand(Direction.East),
-                "move west" => new MoveCommand(Direction.West),
-                "enable fountain" => new ActivateCommand()
-            };
-
+            DisplayGameStatus();
+            ICommand playerCommand = GetCommand();
             playerCommand.Execute(this);
 
             if (IsWon)
@@ -70,6 +53,38 @@ public class TheFountainOfObjectsGame
                 DialogueHelper.WriteLine("You Win!", ConsoleColor.Magenta);
             }
 
+        }
+    }
+
+
+    // Display the current status of the game, including the players location & any senses that may be triggered
+    private void DisplayGameStatus()
+    {
+        DialogueHelper.WriteLine("---------------------------------------", ConsoleColor.White);
+        DialogueHelper.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})", ConsoleColor.White);
+
+        foreach (ISense sense in _senses)
+        {
+            if (sense.CanSense(this)) sense.Display(this);
+        }
+    }
+
+    // Returns a ICommand object to get the players input
+    private ICommand GetCommand()
+    {
+        // Keep looping until a valid command is entered
+        while (true)
+        {
+            DialogueHelper.Write("What would you like to do? - ", ConsoleColor.Cyan);
+            string? command = Console.ReadLine();
+
+            if (command?.ToLower() == "move north") return new MoveCommand(Direction.North);
+            if (command?.ToLower() == "move south") return new MoveCommand(Direction.South);
+            if (command?.ToLower() == "move west") return new MoveCommand(Direction.West);
+            if (command?.ToLower() == "move east") return new MoveCommand(Direction.East);
+            if (command?.ToLower() == "enable fountain") return new ActivateCommand();
+
+            DialogueHelper.WriteLine($"{command} is not a valid not a valid command.", ConsoleColor.Red);
         }
     }
 
