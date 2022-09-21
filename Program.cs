@@ -1,26 +1,58 @@
-﻿
-// Instantiate a new 3x3 map
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
+﻿DialogueHelper.Write("What size map do you wish to play on? (Small, Medium, Large) - ", ConsoleColor.Cyan);
+TheFountainOfObjectsGame game = Console.ReadLine()?.ToLower() switch
+{
+    "small" => CreateSmallGame(),
+    "medium" => CreateMediumGame(),
+    "large" => CreateLargeGame()
+};
 
-Map map = new Map(3, 3);
-// Instantiate a new start position for the player class
-Location startLocation = new Location(0, 0);
-// Instantiate a new player starting at 0,0
-Player player = new Player(startLocation);
-
-
-TheFountainOfObjectsGame game = new TheFountainOfObjectsGame(map, player);
 game.Run();
 
+
+// Creates a small game map
+TheFountainOfObjectsGame CreateSmallGame()
+{
+    Map map = new Map(4, 4);
+    Location startLocation = new Location(0, 0);
+    Player player = new Player(startLocation);
+
+    map.SetRoomType(startLocation, RoomType.CavernEntrance);
+    map.SetRoomType(new Location(0, 2), RoomType.FountainRoom);
+
+    return new TheFountainOfObjectsGame(map, player);
+}
+
+// Creates a medium game map
+TheFountainOfObjectsGame CreateMediumGame()
+{
+    Map map = new Map(6, 6);
+    Location startLocation = new Location(0, 0);
+    Player player = new Player(startLocation);
+
+    map.SetRoomType(startLocation, RoomType.CavernEntrance);
+    map.SetRoomType(new Location(5, 4), RoomType.FountainRoom);
+
+    return new TheFountainOfObjectsGame(map, player);
+}
+
+// Creates a large game map
+TheFountainOfObjectsGame CreateLargeGame()
+{
+    Map map = new Map(8, 8);
+    Location startLocation = new Location(0, 0);
+    Player player = new Player(startLocation);
+
+    map.SetRoomType(startLocation, RoomType.CavernEntrance);
+    map.SetRoomType(new Location(7, 4), RoomType.FountainRoom);
+
+    return new TheFountainOfObjectsGame(map, player);
+}
 
 public class TheFountainOfObjectsGame
 {
     public Map Map { get; }
     public Player Player { get; }
-
     private readonly ISense[] _senses;
-
     public bool isFountainActivated { get; set; }
 
     public TheFountainOfObjectsGame(Map map, Player player)
@@ -35,12 +67,10 @@ public class TheFountainOfObjectsGame
             new FountainSense()
         };
     }
+
+    // The main game loop
     public void Run()
     {
-        Map.SetRoomType(new Location(0, 0), RoomType.CavernEntrance);
-        Map.SetRoomType(new Location(0, 1), RoomType.Empty);
-        Map.SetRoomType(new Location(0, 2), RoomType.FountainRoom);
-
         while (!IsWon)
         {
             DisplayGameStatus();
@@ -52,7 +82,6 @@ public class TheFountainOfObjectsGame
                 DialogueHelper.WriteLine("The Fountain Of Objects has been reactivated, and you have escaped with your life!", ConsoleColor.Magenta);
                 DialogueHelper.WriteLine("You Win!", ConsoleColor.Magenta);
             }
-
         }
     }
 
@@ -88,11 +117,12 @@ public class TheFountainOfObjectsGame
         }
     }
 
+    // Checks whether the player has won or not dependent on if the fountain is activated and if the player is at the cave entrance
     public bool IsWon => isFountainActivated && Map.GetRoomType(Player.Location) == RoomType.CavernEntrance;
 
 }
 
-
+// A class containing all information relevant to the player
 public class Player
 {
     public Location Location { get; set; }
@@ -103,8 +133,10 @@ public class Player
     }
 }
 
+// A record to store locations as
 public record Location(int Row, int Column);
 
+// Contains all information regarding to the map (Room information, map size etc.
 public class Map
 {
     private readonly RoomType[,] _rooms;
@@ -240,7 +272,7 @@ public static class DialogueHelper
 
 
 // Enumeration to store the different types of room, allows for expanding upon
-public enum RoomType { Empty, CavernEntrance, FountainRoom}
+public enum RoomType { Empty, CavernEntrance, FountainRoom, Pit}
 
 // Public enumeration to store a direction as it will be used in multiple instances
 public enum Direction { North, South, East, West }
