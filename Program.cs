@@ -1,5 +1,7 @@
 ﻿
 // Instantiate a new 3x3 map
+using System.Security.Cryptography.X509Certificates;
+
 Map map = new Map(3, 3);
 // Instantiate a new start position for the player class
 Location startLocation = new Location(0, 0);
@@ -40,8 +42,8 @@ public class TheFountainOfObjectsGame
 
         while (!IsWon)
         {
-            Console.WriteLine("---------------------------------------");
-            Console.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})");
+            DialogueHelper.WriteLine("---------------------------------------", ConsoleColor.White);
+            DialogueHelper.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})", ConsoleColor.White);
 
             foreach(ISense sense in _senses)
             {
@@ -49,7 +51,7 @@ public class TheFountainOfObjectsGame
             }
 
 
-            Console.Write("Which direction do you wish to move? (North, South, East, West) - ");
+            DialogueHelper.Write("Which direction do you wish to move? (North, South, East, West) - ", ConsoleColor.Cyan);
             string? command = Console.ReadLine();
             ICommand playerCommand = command?.ToLower() switch
             {
@@ -64,8 +66,8 @@ public class TheFountainOfObjectsGame
 
             if (IsWon)
             {
-                Console.WriteLine("The Fountain Of Objects has been reactivated, and you have escaped with your life!");
-                Console.WriteLine("You Win!");
+                DialogueHelper.WriteLine("The Fountain Of Objects has been reactivated, and you have escaped with your life!", ConsoleColor.Magenta);
+                DialogueHelper.WriteLine("You Win!", ConsoleColor.Magenta);
             }
 
         }
@@ -150,7 +152,7 @@ public class MoveCommand : ICommand
         }
         else
         {
-            Console.WriteLine("There is a wall here.");
+            DialogueHelper.WriteLine("There is a wall here.", ConsoleColor.White);
         }
 
     }
@@ -163,7 +165,7 @@ public class ActivateCommand : ICommand
     {
         // Checks to see if the fountain is in the same room as player and responds accordingly
         if (game.Map.GetRoomType(game.Player.Location) == RoomType.FountainRoom) game.isFountainActivated = true;
-        else Console.WriteLine("The fountain is not in this room.");
+        else DialogueHelper.WriteLine("The fountain is not in this room.", ConsoleColor.White);
     }
 }
 
@@ -183,7 +185,8 @@ public class CavernEntranceSense : ISense
     // Check if the cavern entrance can be sensed
     public bool CanSense(TheFountainOfObjectsGame game) => game.Map.GetRoomType(game.Player.Location) == RoomType.CavernEntrance;
     // Displays a message if it can be sensed
-    public void Display(TheFountainOfObjectsGame game) => Console.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.");
+    public void Display(TheFountainOfObjectsGame game) => DialogueHelper.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.",
+                                                            ConsoleColor.Yellow);
 
 }
 // A sense for checking if the player can sense the fountain 
@@ -195,8 +198,26 @@ public class FountainSense : ISense
     // Displays an appropriate message if the fountain is on or off
     public void Display(TheFountainOfObjectsGame game)
     {
-        if (!game.isFountainActivated) Console.WriteLine("You hear water dripping in this room. The Fountain Of Objects is here!");
-        else Console.WriteLine("You hear the rushing waters from The Fountain Of Objects. It has been reactivated!");
+        if (!game.isFountainActivated) DialogueHelper.WriteLine("You hear water dripping in this room. The Fountain Of Objects is here!", ConsoleColor.Blue);
+        else DialogueHelper.WriteLine("You hear the rushing waters from The Fountain Of Objects. It has been reactivated!", ConsoleColor.Blue);
+    }
+}
+
+// Static helper class which can be referenced for highlighting relevant messages within the game
+public static class DialogueHelper
+{
+    // WriteLine method replacement for Console.WriteLine()
+    public static void WriteLine(string text, ConsoleColor colour)
+    {
+        Console.ForegroundColor = colour;
+        Console.WriteLine(text);
+    }
+
+    // Write method replacement for Console.Write()
+    public static void Write(string text, ConsoleColor colour)
+    {
+        Console.ForegroundColor = colour;
+        Console.Write(text);
     }
 }
 
