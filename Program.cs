@@ -23,22 +23,35 @@ public class TheFountainOfObjectsGame
     }
     public void Run()
     {
+        Map.SetRoomType(new Location(0, 0), RoomType.CavernEntrance);
+        Map.SetRoomType(new Location(0, 1), RoomType.Empty);
+
         while (true)
         {
             Console.WriteLine("---------------------------------------");
             Console.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})");
+
+            if (Map.GetRoomType(Player.Location) == RoomType.Empty)
+            {
+                Console.WriteLine("This room is empty!");
+            }
+            if (Map.GetRoomType(Player.Location) == RoomType.CavernEntrance)
+            {
+                Console.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.");
+            }
+
+
             Console.Write("Which direction do you wish to move? (North, South, East, West) - ");
             string? command = Console.ReadLine();
             ICommand playerCommand = command?.ToLower() switch
             {
-                "north" => new MoveCommand(Direction.North),
-                "south" => new MoveCommand(Direction.South),
-                "east" => new MoveCommand(Direction.East),
-                "west" => new MoveCommand(Direction.West)
+                "move north" => new MoveCommand(Direction.North),
+                "move south" => new MoveCommand(Direction.South),
+                "move east" => new MoveCommand(Direction.East),
+                "move west" => new MoveCommand(Direction.West),
             };
 
             playerCommand.Execute(this);
-            Console.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})");
         }
 
 
@@ -72,6 +85,14 @@ public class Map
         _rooms = new RoomType[Rows, Columns];
     }
 
+    // Set the room type to a given room
+    public void SetRoomType(Location location, RoomType room) => _rooms[location.Row, location.Column] = room;
+
+
+    // Get the room type at the given location
+    public RoomType GetRoomType(Location location) => _rooms[location.Row, location.Column];
+
+
 }
 
 public interface ICommand
@@ -96,29 +117,64 @@ public class MoveCommand : ICommand
         Location currentPlayerLocation = game.Player.Location;
         if (Direction == Direction.North)
         {
-            Location newLocation = new Location(currentPlayerLocation.Row + 1, currentPlayerLocation.Column);
-            game.Player.Location = newLocation;
+            Location newLocation = new Location(currentPlayerLocation.Row - 1, currentPlayerLocation.Column);
+            if (newLocation.Row < 0)
+            {
+                Console.WriteLine("There is a wall here!");
+            }
+            else
+            {
+                game.Player.Location = newLocation;
+            } 
         }
+
+
         if (Direction == Direction.South)
         {
-            Location newLocation = new Location(currentPlayerLocation.Row - 1, currentPlayerLocation.Column);
-            game.Player.Location = newLocation;
+            Location newLocation = new Location(currentPlayerLocation.Row + 1, currentPlayerLocation.Column);
+            if (newLocation.Row > 3)
+            {
+                Console.WriteLine("There is a wall here!");
+            }
+            else
+            {
+                game.Player.Location = newLocation;
+            }
         }
+
+
         if (Direction == Direction.West)
         {
             Location newLocation = new Location(currentPlayerLocation.Row, currentPlayerLocation.Column - 1);
-            game.Player.Location = newLocation;
+            if (newLocation.Column < 0)
+            {
+                Console.WriteLine("There is a wall here!");
+            }
+            else
+            {
+                game.Player.Location = newLocation;
+            }
         }
+
+
         if (Direction == Direction.East)
         {
             Location newLocation = new Location(currentPlayerLocation.Row, currentPlayerLocation.Column + 1);
-            game.Player.Location = newLocation;
+            if(newLocation.Column > 3)
+            {
+                Console.WriteLine("There is a wall here!");
+            }
+            else
+            {
+                game.Player.Location = newLocation;
+            }
         }
 
 
     }
 
 }
+
 
 
 
