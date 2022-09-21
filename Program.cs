@@ -92,6 +92,9 @@ public class Map
     // Get the room type at the given location
     public RoomType GetRoomType(Location location) => _rooms[location.Row, location.Column];
 
+    // Checks to see if the room exists on the map
+    public bool RoomExists(Location location) => (location.Row < _rooms.GetLength(0) && location.Row >= 0 && location.Column < _rooms.GetLength(1) && location.Column >= 0);
+
 
 }
 
@@ -115,61 +118,22 @@ public class MoveCommand : ICommand
     {
         // Executes the movement command
         Location currentPlayerLocation = game.Player.Location;
-        if (Direction == Direction.North)
+        Location newLocation = Direction switch
         {
-            Location newLocation = new Location(currentPlayerLocation.Row - 1, currentPlayerLocation.Column);
-            if (newLocation.Row < 0)
-            {
-                Console.WriteLine("There is a wall here!");
-            }
-            else
-            {
-                game.Player.Location = newLocation;
-            } 
-        }
+            Direction.North => new Location(currentPlayerLocation.Row - 1, currentPlayerLocation.Column),
+            Direction.South => new Location(currentPlayerLocation.Row + 1, currentPlayerLocation.Column),
+            Direction.East => new Location(currentPlayerLocation.Row, currentPlayerLocation.Column + 1),
+            Direction.West => new Location(currentPlayerLocation.Row, currentPlayerLocation.Column - 1)
+        };
 
-
-        if (Direction == Direction.South)
+        if (game.Map.RoomExists(newLocation))
         {
-            Location newLocation = new Location(currentPlayerLocation.Row + 1, currentPlayerLocation.Column);
-            if (newLocation.Row > 3)
-            {
-                Console.WriteLine("There is a wall here!");
-            }
-            else
-            {
-                game.Player.Location = newLocation;
-            }
+            game.Player.Location = newLocation;
         }
-
-
-        if (Direction == Direction.West)
+        else
         {
-            Location newLocation = new Location(currentPlayerLocation.Row, currentPlayerLocation.Column - 1);
-            if (newLocation.Column < 0)
-            {
-                Console.WriteLine("There is a wall here!");
-            }
-            else
-            {
-                game.Player.Location = newLocation;
-            }
+            Console.WriteLine("There is a wall here.");
         }
-
-
-        if (Direction == Direction.East)
-        {
-            Location newLocation = new Location(currentPlayerLocation.Row, currentPlayerLocation.Column + 1);
-            if(newLocation.Column > 3)
-            {
-                Console.WriteLine("There is a wall here!");
-            }
-            else
-            {
-                game.Player.Location = newLocation;
-            }
-        }
-
 
     }
 
