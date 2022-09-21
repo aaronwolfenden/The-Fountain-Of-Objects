@@ -16,10 +16,18 @@ public class TheFountainOfObjectsGame
     public Map Map { get; }
     public Player Player { get; }
 
+    private readonly ISense[] _senses;
+
     public TheFountainOfObjectsGame(Map map, Player player)
     {
         Map = map;
         Player = player;
+
+        // New senses can be added to this list as the game is expanded upon, allowing for scalability
+        _senses = new ISense[]
+        {
+            new CavernEntranceSense()
+        };
     }
     public void Run()
     {
@@ -31,13 +39,9 @@ public class TheFountainOfObjectsGame
             Console.WriteLine("---------------------------------------");
             Console.WriteLine($"You are in the room at (Row={Player.Location.Row}, Column={Player.Location.Column})");
 
-            if (Map.GetRoomType(Player.Location) == RoomType.Empty)
+            foreach(ISense sense in _senses)
             {
-                Console.WriteLine("This room is empty!");
-            }
-            if (Map.GetRoomType(Player.Location) == RoomType.CavernEntrance)
-            {
-                Console.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.");
+                if (sense.CanSense(this)) sense.Display(this);
             }
 
 
@@ -97,16 +101,17 @@ public class Map
 
 
 }
-
+// An interface for commands which further commands such as movement will be based off
 public interface ICommand
 {
-    // An interface for commands which further commands such as movement will be based off
+    
     public void Execute(TheFountainOfObjectsGame game) { }
 }
 
+
+// A move command class based off the ICommand interface
 public class MoveCommand : ICommand
 {
-    // A move command class based off the ICommand interface
     public Direction Direction { get; }
 
     public MoveCommand(Direction direction)
@@ -114,9 +119,10 @@ public class MoveCommand : ICommand
         Direction = direction;
     }
 
+    // Executes the movement command
     public void Execute(TheFountainOfObjectsGame game)
     {
-        // Executes the movement command
+        
         Location currentPlayerLocation = game.Player.Location;
         Location newLocation = Direction switch
         {
@@ -136,6 +142,26 @@ public class MoveCommand : ICommand
         }
 
     }
+
+}
+
+// Interface for sensing which individual senses will be based off
+public interface ISense
+{
+    // Check to see if anything can be sensed
+    public bool CanSense(TheFountainOfObjectsGame game);
+
+    // Displays the appropriate message if CanSense returns true
+    public void Display(TheFountainOfObjectsGame game);
+}
+
+
+public class CavernEntranceSense : ISense
+{
+    // Check if the Cavern exit can be sensed
+    public bool CanSense(TheFountainOfObjectsGame game) => game.Map.GetRoomType(game.Player.Location) == RoomType.CavernEntrance;
+
+    public void Display(TheFountainOfObjectsGame game) => Console.WriteLine("You see light in this room coming from outside the cavern. This is the entrance.");
 
 }
 
