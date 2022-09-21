@@ -18,6 +18,7 @@ TheFountainOfObjectsGame CreateSmallGame()
 
     map.SetRoomType(startLocation, RoomType.CavernEntrance);
     map.SetRoomType(new Location(0, 2), RoomType.FountainRoom);
+    map.SetRoomType(new Location(3, 3), RoomType.Pit);
 
     return new TheFountainOfObjectsGame(map, player);
 }
@@ -31,6 +32,8 @@ TheFountainOfObjectsGame CreateMediumGame()
 
     map.SetRoomType(startLocation, RoomType.CavernEntrance);
     map.SetRoomType(new Location(5, 4), RoomType.FountainRoom);
+    map.SetRoomType(new Location(4, 4), RoomType.Pit);
+    map.SetRoomType(new Location(1, 1), RoomType.Pit);
 
     return new TheFountainOfObjectsGame(map, player);
 }
@@ -44,6 +47,10 @@ TheFountainOfObjectsGame CreateLargeGame()
 
     map.SetRoomType(startLocation, RoomType.CavernEntrance);
     map.SetRoomType(new Location(7, 4), RoomType.FountainRoom);
+    map.SetRoomType(new Location(4, 4), RoomType.Pit);
+    map.SetRoomType(new Location(1, 1), RoomType.Pit);
+    map.SetRoomType(new Location(5, 7), RoomType.Pit);
+    map.SetRoomType(new Location(3, 6), RoomType.Pit);
 
     return new TheFountainOfObjectsGame(map, player);
 }
@@ -64,7 +71,8 @@ public class TheFountainOfObjectsGame
         _senses = new ISense[]
         {
             new CavernEntranceSense(),
-            new FountainSense()
+            new FountainSense(),
+            new PitSense()
         };
     }
 
@@ -155,10 +163,30 @@ public class Map
 
 
     // Get the room type at the given location
-    public RoomType GetRoomType(Location location) => _rooms[location.Row, location.Column];
+    public RoomType GetRoomType(Location location) => RoomExists(location) ? _rooms[location.Row, location.Column] : RoomType.Empty;
 
     // Checks to see if the room exists on the map
     public bool RoomExists(Location location) => (location.Row < _rooms.GetLength(0) && location.Row >= 0 && location.Column < _rooms.GetLength(1) && location.Column >= 0);
+
+    // Adjacency check for other rooms
+    public bool IsAdjacent(Location location, RoomType roomType)
+    {
+        // Check vertical
+        if (GetRoomType(new Location(location.Row + 1, location.Column)) == roomType) return true;
+        if (GetRoomType(new Location(location.Row - 1, location.Column)) == roomType) return true;
+
+        // Check horizontal
+        if (GetRoomType(new Location(location.Row, location.Column + 1)) == roomType) return true;
+        if (GetRoomType(new Location(location.Row, location.Column - 1)) == roomType) return true;
+
+        // Check diagonal
+        if (GetRoomType(new Location(location.Row + 1, location.Column + 1)) == roomType) return true;
+        if (GetRoomType(new Location(location.Row - 1, location.Column + 1)) == roomType) return true;
+        if (GetRoomType(new Location(location.Row + 1, location.Column - 1)) == roomType) return true;
+        if (GetRoomType(new Location(location.Row - 1, location.Column - 1)) == roomType) return true;
+
+        return false;
+    }
 
 
 }
@@ -247,6 +275,19 @@ public class FountainSense : ISense
     {
         if (!game.isFountainActivated) DialogueHelper.WriteLine("You hear water dripping in this room. The Fountain Of Objects is here!", ConsoleColor.Blue);
         else DialogueHelper.WriteLine("You hear the rushing waters from The Fountain Of Objects. It has been reactivated!", ConsoleColor.Blue);
+    }
+}
+
+// A sense for detecting pits
+public class PitSense : ISense
+{
+    // Checks if a pit is nearby
+    public bool CanSense(TheFountainOfObjectsGame game) => game.Map.IsAdjacent(game.Player.Location, RoomType.Pit);
+
+    // Displays an appropriate warning
+    public void Display(TheFountainOfObjectsGame game)
+    {
+        DialogueHelper.WriteLine("You feel a draft. There is a pit in a nearby room.", ConsoleColor.DarkGray);
     }
 }
 
