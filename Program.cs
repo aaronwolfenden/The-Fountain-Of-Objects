@@ -90,11 +90,19 @@ TheFountainOfObjectsGame CreateLargeGame()
 
 public class TheFountainOfObjectsGame
 {
+    // Stores the map object being used
     public Map Map { get; }
+    // Stores an instance of the player
     public Player Player { get; }
+    // Stores a list of all the senses in the game
     private readonly ISense[] _senses;
+    // Stores a list of monsters that are in the game
     public Monster[] Monsters;
+    // Stores whether or not the fountain has been activated
     public bool IsFountainActivated { get; set; }
+    // Stores a time duration of how long the game lasted for
+    public DateTime RunTimeStarted { get; set; }
+    
 
     public TheFountainOfObjectsGame(Map map, Player player, Monster[] monsters)
     {
@@ -116,7 +124,8 @@ public class TheFountainOfObjectsGame
     // The main game loop
     public void Run()
     {
-
+        // Starts the timer for the game
+        RunTimeStarted = DateTime.Now;
         // Game runs while the player hasn't completed the win conditions and still has life left
         while (!IsWon && Player.Health > 0)
         {
@@ -138,12 +147,17 @@ public class TheFountainOfObjectsGame
         // Checks if the player has won and presents the relevant message
         if (IsWon)
         {
+            DateTime runTimeFinished = DateTime.Now;
+            TimeSpan runDuration = runTimeFinished - RunTimeStarted;
             DialogueHelper.WriteLine("The Fountain Of Objects has been reactivated, and you have escaped with your life!", ConsoleColor.Magenta);
             DialogueHelper.WriteLine("You Win!", ConsoleColor.Magenta);
+            DialogueHelper.WriteLine($"Time Elapsed this run - {runDuration.Minutes} minutes, {runDuration.Seconds} seconds", ConsoleColor.Magenta);
+            
         }
         // If the player has not won when the game has ended, present lost message
         else
         {
+            DateTime runTimeFinished = DateTime.Now;
             DialogueHelper.WriteLine($"You died to: {Player.CauseOfDeath}", ConsoleColor.Red);
             DialogueHelper.WriteLine("You Lost!", ConsoleColor.Red);
         }
@@ -207,6 +221,7 @@ public class Player
 
     // An int to store the amount of arrows the players has
     public int arrowCount { get; set; } = 5;
+
 
     public Player(Location location)
     {
